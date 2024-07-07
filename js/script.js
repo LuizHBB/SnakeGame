@@ -5,15 +5,32 @@ const ctx = canvas.getContext("2d");
 const size = 30
 
 //posição inicial da cobra
-const snake = [
-    { x: 270, y: 240}
-]
+const snake = [{ x: 270, y: 240 }]
+
+const randomNumber = (min, max) =>{
+    return Math.round(Math.random() * (max-min)+ min)
+}
+
+const randomPosition = () => {
+    const number = randomNumber(0,canvas.width - size)
+    return Math.round(number / 30)*30
+}
+
+// caso queira usar food com cores diferentes - não quero
+const randomColor = () =>{
+    const red = randomNumber(0,255)
+    const green = randomNumber(0,255)
+    const blue = randomNumber(0,255)
+
+    return `rgb(${red}, ${green}, ${blue})`
+}
 
 //posição teste e cor da comidinha
 const food = {
-    x:90,
-    y:90,
+    x:randomPosition(),
+    y:randomPosition(),
     color: "red"
+    //color: randomColor()
 }
 
 //variaveis globais
@@ -21,16 +38,20 @@ let direction, loopID
 
 //desenha a comida da cobrinha dentro do mapa
 const drawFood = () =>{
-    ctx.fillStyle = food.color
-    ctx.fillRect(food.x, food.y, size, size)
+    const { x, y, color} = food
+    ctx.shadowColor = color
+    ctx.shadowBlur = 12
+    ctx.fillStyle = color
+    ctx.fillRect(x, y, size, size)
+    ctx.shadowBlur = 0
 }
 
 //função que faz a cobrinha se mover de acordo com as teclas pressionadas
 const drawSnake = () => {
-    ctx.fillStyle = "purple"
+    ctx.fillStyle = "#008000"
     snake.forEach((position, index) => {
         if(index == snake.length-1){
-            ctx.fillStyle = "pink"
+            ctx.fillStyle = "#228b22"
         }
         ctx.fillRect(position.x, position.y, size, size)
     })
@@ -61,7 +82,7 @@ const moveSnake = () => {
 //desenha as linhas dentro do jogo
 const drawGrid = () => {
     ctx.lineWidth = 1
-    ctx.strokeStyle = "white"
+    ctx.strokeStyle = "#404040"
 
     for (let i = 30; i<canvas.width; i +=30) {
         ctx.beginPath()
@@ -77,6 +98,15 @@ const drawGrid = () => {
     
 }
 
+const checkEat = () =>{
+    const head = snake[snake.length - 1]
+    if(head.x == food.x && head.y == food.y){
+        snake.push(head)
+        food.x = randomPosition()
+        food.y = randomPosition()
+    }
+}
+
 //função que vai deixar o jogo em loop
 const gameLoop = () => {
     clearInterval(loopID)
@@ -86,6 +116,7 @@ const gameLoop = () => {
     drawFood()
     moveSnake()
     drawSnake()
+    checkEat()
 
     loopID = setTimeout(()=>{
         gameLoop()
