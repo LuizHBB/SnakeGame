@@ -7,10 +7,12 @@ const size = 30
 //posição inicial da cobra
 const snake = [{ x: 270, y: 240 }]
 
+//crinanddo um numero randomico usando paramentros desejaveis
 const randomNumber = (min, max) =>{
     return Math.round(Math.random() * (max-min)+ min)
 }
 
+//função que vai ser atribuida a posição das comidas, sendo sempre multiplo de 30
 const randomPosition = () => {
     const number = randomNumber(0,canvas.width - size)
     return Math.round(number / 30)*30
@@ -98,13 +100,19 @@ const drawGrid = () => {
     
 }
 
+
+//vai verificar se a cobra 'comeu' a comida e crescer o corpo
 const checkEat = () =>{
     const head = snake[snake.length - 1]
-    if(head.x == food.x && head.y == food.y){
-        snake.push(head)
-        food.x = randomPosition()
-        food.y = randomPosition()
+
+    let x = randomNumber()
+    let y = randomNumber()
+    while(snake.find((position) => position.x == x && position.y == y)){
+        x = randomNumber()
+        y = randomNumber()
     }
+    food.x = x
+    food.y = y
 }
 
 //função que vai deixar o jogo em loop
