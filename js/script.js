@@ -1,11 +1,26 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
+const score = document.querySelector(".score-value");
+const finalScore = document.querySelector(".final-score > span");
+const menu = document.querySelector(".menu-screen");
+const btnPlay = document.querySelector(".btn-play");
+
+//colocar audio no jogo
+const audio = new Audio('../assets/audio.mp3')
+
 //definindo tamanha padrão dos blocos
 const size = 30
 
 //posição inicial da cobra
-const snake = [{ x: 270, y: 240 }]
+const initialPosition = { x: 270, y: 240 }
+
+let snake = [initialPosition]
+
+const incrementScore = () => {
+    score.innerText = +score.innerText + 30
+
+}
 
 //crinanddo um numero randomico usando paramentros desejaveis
 const randomNumber = (min, max) =>{
@@ -18,14 +33,14 @@ const randomPosition = () => {
     return Math.round(number / 30)*30
 }
 
-// caso queira usar food com cores diferentes - não quero
+/* caso queira usar food com cores diferentes - não quero
 const randomColor = () =>{
     const red = randomNumber(0,255)
     const green = randomNumber(0,255)
     const blue = randomNumber(0,255)
 
     return `rgb(${red}, ${green}, ${blue})`
-}
+}/*/
 
 //posição teste e cor da comidinha
 const food = {
@@ -51,6 +66,7 @@ const drawFood = () =>{
 //função que faz a cobrinha se mover de acordo com as teclas pressionadas
 const drawSnake = () => {
     ctx.fillStyle = "#008000"
+    //adicionando uma cor diferente para a cabeça
     snake.forEach((position, index) => {
         if(index == snake.length-1){
             ctx.fillStyle = "#228b22"
@@ -62,6 +78,8 @@ const drawSnake = () => {
 //função para mover a cobrinha denho do cenario
 const moveSnake = () => {
     if(!direction) return
+
+
     const head = snake[snake.length - 1]
 
 
@@ -105,14 +123,52 @@ const drawGrid = () => {
 const checkEat = () =>{
     const head = snake[snake.length - 1]
 
-    let x = randomNumber()
-    let y = randomNumber()
-    while(snake.find((position) => position.x == x && position.y == y)){
-        x = randomNumber()
-        y = randomNumber()
+    if(head.x == food.x && head.y == food.y) {
+        incrementScore()
+        snake.push(head)
+        audio.play()
+
+        let x = randomPosition()
+        let y = randomPosition()
+
+        //não deixa que a fruta apareça no corpo da cobrinha
+        while(snake.find((position) => position.x == x && position.y == y)){
+            x = randomPosition()
+            y = randomPosition()
+        }
+        food.x = x
+        food.y = y
     }
-    food.x = x
-    food.y = y
+}
+
+const checkColision = () => {
+    const head = snake[snake.length - 1]
+    const canvasLimit = canvas.width - size
+    //pega tudo menos a cabeça da cobra
+    const neckIndex = snake.length-2
+    
+    const wallCollision = 
+        head.x < 0 || head.x > canvasLimit || head.y < 0 || head.y > canvasLimit
+
+
+    //verificando colisão no próprio corpo 
+    const selfCollision = 
+        snake.find((position, index)=>{
+            return index < neckIndex && position.x == head.x && position.y == head.y
+        })
+
+    //vendo se bateu nas paredes
+    if (wallCollision || selfCollision) {
+        gameOver()
+    }
+}
+
+const gameOver = () => {
+    direction = undefined
+
+    menu.style.display = "flex"
+    finalScore.innerText = score.innerText
+
 }
 
 //função que vai deixar o jogo em loop
@@ -125,6 +181,7 @@ const gameLoop = () => {
     moveSnake()
     drawSnake()
     checkEat()
+    checkColision()
 
     loopID = setTimeout(()=>{
         gameLoop()
@@ -148,4 +205,10 @@ document.addEventListener("keydown", ({ key }) =>{
     if (key == "ArrowUp" && direction !="down") {
         direction = "up"
     }
+})
+
+btnPlay.addEventListener("click", ()=>{
+    score.innerText = "00"
+    menu.style.display = "none"
+    snake = [initialPosition]
 })
